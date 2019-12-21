@@ -2,22 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using ScriptsUteis;
 
 public class BackgroundScript : MonoBehaviour
 {
-    public GameObject chaoPrefab;
+    public GameObject chaoPrefab1;
+    public GameObject[] chaoPrefabs;
+    public int max = 10;
+
     //public Camera camera;
 
     private GameObject[] objetosChao;
-    private Vector2 objectPoolPosition = new Vector2(0f, 0f);
-    private int max = 4;
+
     private int indiceObjAtual = 0;
+
     private float objAtualPos;
+
     private GameObject bola;
     private float numeroMagico = 7.138808f;
 
-    private float px;
-    private float py;
+    private float px = 0;
+    private float py = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -28,42 +33,65 @@ public class BackgroundScript : MonoBehaviour
         Debug.Log(Camera.main.fieldOfView);
 
 
-        objetosChao = new GameObject[4];
+        objetosChao = new GameObject[max];
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < max; i++)
         {
-            objetosChao[i] = Instantiate(chaoPrefab, objectPoolPosition, Quaternion.identity);
+            var instanciar = Random.Range(0, 4);
+            objetosChao[i] = Instantiate(chaoPrefabs[instanciar], Vector2.zero, Quaternion.identity);
         }
 
-        // seta posicao inicial dos chaos
-        objetosChao[0].transform.position = new Vector2(0, 0);
         Inicializa();
     }
 
     private void Inicializa()
     {
-        var colliderObj0 = objetosChao[indiceObjAtual].GetComponent<EdgeCollider2D>();
+        Vector2[] transforms = new Vector2[max];
 
-        var ultimoPontoObj0 = colliderObj0.points.LastOrDefault();
-        var boundsObj01 = colliderObj0.bounds;
+        var indiceObjAtualInicializa = 0;
+        float pxI = 0;
+        float pyI = 0;
 
-        var tamxObj1 = objetosChao[indiceObjAtual + 1].GetComponent<EdgeCollider2D>().bounds.extents.x;
-        var tamyObj1 = objetosChao[indiceObjAtual + 1].GetComponent<EdgeCollider2D>().bounds.extents.y;
+        for (int i = 0; i < max -1; i++)
+        {
+            var objAtual = objetosChao[i];
+            if (i + 1 > max)
+            {
+                break;
+            }
+            var indiceProximo = i + 1;
 
-        px = ultimoPontoObj0.x + -boundsObj01.center.x + tamxObj1;
-        py = ultimoPontoObj0.y - boundsObj01.center.y - tamyObj1;
+            // TODO: fazer ajuste no menor Y, nao pode usar ele, tem que usar o ULTIMO ponto Y
 
+            var colliderObjAtual = objetosChao[indiceObjAtualInicializa].GetComponent<EdgeCollider2D>();
+            var colliderObjProx = objetosChao[indiceProximo].GetComponent<EdgeCollider2D>();
 
-        objetosChao[1].transform.position = new Vector2(px, py);
+            pxI = colliderObjAtual.MaiorX() + (objetosChao[indiceProximo].transform.position.x - colliderObjProx.MenorX());
 
-        objAtualPos = objetosChao[indiceObjAtual].GetComponent<EdgeCollider2D>().points.LastOrDefault().x;
+            var menorYObjetoAtual = colliderObjAtual.MenorY();
+            var maiorYProximoObjetoSemTransformPositionY = colliderObjProx.MaiorY();
 
-        indiceObjAtual++;
-        if (indiceObjAtual == 4)
-            indiceObjAtual = 0;
+            pyI = menorYObjetoAtual - maiorYProximoObjetoSemTransformPositionY;
+            var pxpyAtual = transforms[indiceObjAtualInicializa];
+
+            pxI = pxpyAtual.x + pxI;
+            pyI = pxpyAtual.y + pyI;
+
+            transforms[indiceProximo] = new Vector2(pxI, pyI);
+
+            objetosChao[indiceProximo].transform.position = new Vector2(pxI, pyI);
+
+            indiceObjAtualInicializa++;
+            if (indiceObjAtualInicializa == max)
+                indiceObjAtualInicializa = 0;
+        }
+
+        objAtualPos = transforms.LastOrDefault().x;
     }
 
     private bool vai = true;
+
+
 
     private void FixedUpdate()
     {
@@ -74,6 +102,7 @@ public class BackgroundScript : MonoBehaviour
 
             if (vai)
             {
+                //RecalculaPxPy();
                 SpawnaNovo();
 
                 vai = true;
@@ -83,16 +112,25 @@ public class BackgroundScript : MonoBehaviour
 
     private void SpawnaNovo()
     {
-        var indiceProximo = indiceObjAtual == 3 ? 0 : indiceObjAtual + 1;
+        var colliderObjAtual = objetosChao[indiceObjAtual].GetComponent<EdgeCollider2D>();
+        var indiceProximoObjeto = indiceObjAtual == max - 1 ? 0 : indiceObjAtual + 1;
+        var colliderObjProx = objetosChao[indiceProximoObjeto].GetComponent<EdgeCollider2D>();
 
-        var posAtual = objetosChao[indiceObjAtual].transform.position;
+        px = colliderObjAtual.MaiorX() + (objetosChao[indiceProximoObjeto].transform.position.x - colliderObjProx.MenorX());
 
-        objetosChao[indiceProximo].transform.position = new Vector2(posAtual.x + px, py + posAtual.y);
+        var menorYObjetoAtual = colliderObjAtual.MenorY();
+        var maiorYProximoObjetoSemTransformPositionY = colliderObjProx.MaiorY() - objetosChao[indiceProximoObjeto].transform.position.y;
 
-        objAtualPos = objetosChao[indiceObjAtual].GetComponent<EdgeCollider2D>().points.LastOrDefault().x + posAtual.x;
+        py = menorYObjetoAtual - maiorYProximoObjetoSemTransformPositionY;
+
+        objAtualPos = colliderObjAtual.MaiorX();
+
+        var indiceProximo = indiceObjAtual == max - 1 ? 0 : indiceObjAtual + 1;
+
+        objetosChao[indiceProximo].transform.position = new Vector2(px, py);
 
         indiceObjAtual++;
-        if (indiceObjAtual == 4)
+        if (indiceObjAtual == max)
             indiceObjAtual = 0;
     }
 
@@ -102,3 +140,4 @@ public class BackgroundScript : MonoBehaviour
 
     }
 }
+
