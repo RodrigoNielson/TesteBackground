@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using ScriptsUteis;
+using UnityEngine.U2D;
 
 public class BackgroundScript : MonoBehaviour
 {
@@ -26,6 +27,18 @@ public class BackgroundScript : MonoBehaviour
         {
             var instanciar = Random.Range(0, chaoPrefabs.Length);
             objetosChao[i] = Instantiate(chaoPrefabs[instanciar], Vector2.zero, Quaternion.identity);
+
+
+            var ssc = objetosChao[i].GetComponent<SpriteShapeController>();
+            ssc.spline.isOpenEnded = false;
+            var p0 = ssc.spline.GetPosition(0);
+            var pl = ssc.spline.GetPosition(ssc.spline.GetPointCount() - 1);
+            //ssc.spline.InsertPointAt(0, new Vector2(p0.x, p0.y - 0.1f)); // gambi
+            //ssc.spline.SetTangentMode(0, ShapeTangentMode.Continuous);
+            ssc.spline.InsertPointAt(0, new Vector2(p0.x, p0.y - 100));
+            ssc.spline.InsertPointAt(ssc.spline.GetPointCount(), new Vector2(pl.x, p0.y - 100));
+            ssc.RefreshSpriteShape();
+
         }
 
         PreencherBoundCamera();
@@ -102,15 +115,32 @@ public class BackgroundScript : MonoBehaviour
 
         px = colliderObjAtual.MaiorX() + (objetosChao[indiceProximoObjeto].transform.position.x - colliderObjProx.MenorX());
 
-        var ultimoYObjAtual = colliderObjAtual.points.LastOrDefault().y;
+        //var ultimoYObjAtual = colliderObjAtual.points.LastOrDefault().y;
 
-        var primeiroYProximoObj = colliderObjProx.points.FirstOrDefault().y;
+        //var primeiroYProximoObj = colliderObjProx.points.FirstOrDefault().y;
+
+        //var ultimoYObjAtual = colliderObjAtual.points.ElementAt(colliderObjAtual.pointCount-2).y;
+        
+        var ssc = objetosChao[indiceObjAtual].GetComponent<SpriteShapeController>();
+        var ultimoYObjAtual = ssc.spline.GetPosition(ssc.spline.GetPointCount() - 2).y;
+
+        //var primeiroYProximoObj = colliderObjProx.points.ElementAt(1).y;
+        var ssc2  = objetosChao[indiceProximoObjeto].GetComponent<SpriteShapeController>();
+        var primeiroYProximoObj = ssc2.spline.GetPosition(1).y;
+
+        //var p1 = ssc.spline.GetPosition(1);
+
+        //ssc2.spline.SetPosition(1, p1);
+        //ssc2.RefreshSpriteShape();
+        ////ssc2.BakeCollider();
+        //ssc2.BakeMesh();
 
         var primeiroYProximoObjComTransformAtual = primeiroYProximoObj - objetosChao[indiceObjAtual].transform.position.y;
 
         py = ultimoYObjAtual - primeiroYProximoObjComTransformAtual;
 
-        maiorXUltimoChao = colliderObjAtual.MaiorX();
+        //maiorXUltimoChao = colliderObjAtual.MaiorX();
+        maiorXUltimoChao = objetosChao[indiceObjAtual].transform.position.x;
 
         var indiceProximo = indiceObjAtual == qtdChao - 1 ? 0 : indiceObjAtual + 1;
 
