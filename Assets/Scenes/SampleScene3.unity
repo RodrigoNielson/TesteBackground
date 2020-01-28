@@ -218,6 +218,8 @@ MonoBehaviour:
   prefabsChao:
   - {fileID: 3663197953210606497, guid: 50f50075d26ea744bb2fd47cfd0dc3d8, type: 3}
   - {fileID: 3258136224541591674, guid: 54619c5c5dc13a64ea327a78ab65f23a, type: 3}
+  - {fileID: 7582055837180447032, guid: 1a53fd89ec978b04fbf6a8c49c3d6841, type: 3}
+  - {fileID: 2163832735299084030, guid: f1960f00c94a29d438b314219d689d3b, type: 3}
 --- !u!114 &581602891
 MonoBehaviour:
   m_ObjectHideFlags: 0

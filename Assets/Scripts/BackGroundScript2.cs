@@ -39,26 +39,27 @@ public class BackGroundScript2 : MonoBehaviour
         var indice = ssc.spline.GetPointCount() - 1;
 
         var ultimaPosicaoSpline = ssc.spline.GetPosition(indice);
-        //var ultimaTangeteEsquerda = ssc.spline.GetLeftTangent(indice);
-        //var ultimaTangeteDireita = ssc.spline.GetRightTangent(indice);
-
+        
         var posicao = sscPrefab.spline.GetPosition(0);
         ultimaPosicaoSpline = new Vector2(ultimaPosicaoSpline.x - posicao.x, -ultimaPosicaoSpline.y + posicao.y);
-        //ultimaTangeteEsquerda = new Vector2(ultimaTangeteEsquerda.x - posicao.x, -ultimaTangeteEsquerda.y + posicao.y);
-        //ultimaTangeteDireita = new Vector2(ultimaTangeteDireita.x - posicao.x, -ultimaTangeteDireita.y + posicao.y);
 
         ssc.spline.SetTangentMode(ssc.spline.GetPointCount() - 1, ShapeTangentMode.Continuous);
+
+        SuavizarPrimeiroPontoAdicionado(ssc, indice);
+        //var resLep = Vector2.Lerp(ssc.spline.GetPosition(indice), ssc.spline.GetPosition(indice-1), 0.5f);
+        //var diff = resLep - (Vector2)ssc.spline.GetPosition(indice);
+
+        //ssc.spline.SetLeftTangent(ssc.spline.GetPointCount() - 1, diff);
+        //ssc.spline.SetRightTangent(ssc.spline.GetPointCount() - 1, -diff);
 
         for (int i = 1; i < pontos; i++)
         {
             posicao = sscPrefab.spline.GetPosition(i);
 
-            var diferencaTangenteEsquerda = sscPrefab.spline.GetLeftTangent(i) - posicao;
-            var diferencaTangenteDireita = posicao- sscPrefab.spline.GetRightTangent(i);
-
             var posicaoComPontoAtual = new Vector2(ultimaPosicaoSpline.x + posicao.x, -ultimaPosicaoSpline.y + posicao.y);
-            var tangenteEsquerdaComPontoAtual = new Vector2(ultimaPosicaoSpline.x + diferencaTangenteEsquerda.x, -ultimaPosicaoSpline.y + posicao.y);
-            var tangenteDireitaComPontoAtual = new Vector2(ultimaPosicaoSpline.x + diferencaTangenteDireita.x, -ultimaPosicaoSpline.y + posicao.y);
+
+            var tangenteEsquerda = sscPrefab.spline.GetLeftTangent(i);
+            var tangenteDireita = sscPrefab.spline.GetRightTangent(i);
 
             ultimoPonto = posicaoComPontoAtual;
 
@@ -66,8 +67,8 @@ public class BackGroundScript2 : MonoBehaviour
 
             ssc.spline.InsertPointAt(posicaoInserir, posicaoComPontoAtual);
             ssc.spline.SetTangentMode(posicaoInserir, ShapeTangentMode.Continuous);
-            ssc.spline.SetLeftTangent(posicaoInserir, tangenteEsquerdaComPontoAtual);
-            ssc.spline.SetRightTangent(posicaoInserir, tangenteDireitaComPontoAtual);
+            ssc.spline.SetLeftTangent(posicaoInserir, tangenteEsquerda);
+            ssc.spline.SetRightTangent(posicaoInserir, tangenteDireita);
         }
 
         ssc.spline.isOpenEnded = false;
@@ -77,12 +78,10 @@ public class BackGroundScript2 : MonoBehaviour
         ssc.spline.InsertPointAt(ssc.spline.GetPointCount(), ultimoPontoA - new Vector2(0, 30));
     }
 
-    bool up = true;
-
     private void FixedUpdate()
     {
         var cameraTransform = Camera.main.transform.position;
-        var boundXCamera = cameraTransform.x + (Camera.main.sensorSize.x / 2);
+        var boundXCamera = cameraTransform.x + (Camera.main.sensorSize.x * 2);
         if (boundXCamera > ultimoPonto.x)
         {
             SpawnaChao();
@@ -117,8 +116,8 @@ public class BackGroundScript2 : MonoBehaviour
     {
         var ssc = chao.GetComponent<SpriteShapeController>();
 
-        //var asiodh = Random.Range(0, 2);
-        var chaoPrefab = prefabsChao[0];
+        var indicePrefab = Random.Range(0, 4);
+        var chaoPrefab = prefabsChao[indicePrefab];
 
         var sscPrefab = chaoPrefab.GetComponent<SpriteShapeController>();
 
@@ -129,33 +128,54 @@ public class BackGroundScript2 : MonoBehaviour
         var indice = ssc.spline.GetPointCount() - 1;
 
         var ultimaPosicaoSpline = ssc.spline.GetPosition(indice);
-        var ultimaTangeteEsquerda = ssc.spline.GetLeftTangent(indice);
-        var ultimaTangeteDireita = ssc.spline.GetRightTangent(indice);
+
 
         var posicao = sscPrefab.spline.GetPosition(0);
         ultimaPosicaoSpline = new Vector2(ultimaPosicaoSpline.x - posicao.x, -ultimaPosicaoSpline.y + posicao.y);
-        ultimaTangeteEsquerda = new Vector2(ultimaTangeteEsquerda.x - posicao.x, -ultimaTangeteEsquerda.y + posicao.y);
-        ultimaTangeteDireita = new Vector2(ultimaTangeteDireita.x - posicao.x, -ultimaTangeteDireita.y + posicao.y);
 
-        ssc.spline.SetTangentMode(ssc.spline.GetPointCount() - 1, ShapeTangentMode.Continuous);
+        var indiceTangenteInicial = ssc.spline.GetPointCount() - 1;
+
+
+        ssc.spline.SetTangentMode(indiceTangenteInicial, ShapeTangentMode.Continuous);
+        SuavizarPrimeiroPontoAdicionado(ssc, indice);
 
         for (int i = 1; i < pontos; i++)
         {
             posicao = sscPrefab.spline.GetPosition(i);
 
             var posicaoComPontoAtual = new Vector2(ultimaPosicaoSpline.x + posicao.x, -ultimaPosicaoSpline.y + posicao.y);
-            var tangenteEsquerdaComPontoAtual = new Vector2(ultimaTangeteEsquerda.x + posicao.x, -ultimaTangeteEsquerda.y + posicao.y);
-            var tangenteDireitaComPontoAtual = new Vector2(ultimaTangeteDireita.x + posicao.x, -ultimaTangeteDireita.y + posicao.y);
+
+            var tangenteEsquerda = sscPrefab.spline.GetLeftTangent(i);
+            var tangenteDireita = sscPrefab.spline.GetRightTangent(i);
 
             ultimoPonto = posicaoComPontoAtual;
 
-            ssc.spline.InsertPointAt(ssc.spline.GetPointCount(), posicaoComPontoAtual);
-            ssc.spline.SetTangentMode(ssc.spline.GetPointCount() - 1, ShapeTangentMode.Continuous);
-            //ssc.spline.SetLeftTangent(ssc.spline.GetPointCount(), tangenteEsquerdaComPontoAtual);
-            //ssc.spline.SetRightTangent(ssc.spline.GetPointCount(), tangenteDireitaComPontoAtual);
+            var posicaoInserir = ssc.spline.GetPointCount();
+
+            ssc.spline.InsertPointAt(posicaoInserir, posicaoComPontoAtual);
+            ssc.spline.SetTangentMode(posicaoInserir, ShapeTangentMode.Continuous);
+            ssc.spline.SetLeftTangent(posicaoInserir, tangenteEsquerda);
+            ssc.spline.SetRightTangent(posicaoInserir, tangenteDireita);
         }
 
         var ultimoPontoA = (Vector2)ssc.spline.GetPosition(ssc.spline.GetPointCount() - 1);
         ssc.spline.InsertPointAt(ssc.spline.GetPointCount(), ultimoPontoA - new Vector2(0, 30));
+        //    ssc.BakeMesh();
+        // INFO: então, colocando esse bakemesh, nao precisa ficar focado na camera, mas comeca a dar uns erros kKkk kKkk
+        // INFO: então, colocando esse bakemesh, nao precisa ficar focado na camera, mas comeca a dar uns erros kKkk kKkk
+        // INFO: então, colocando esse bakemesh, nao precisa ficar focado na camera, mas comeca a dar uns erros kKkk kKkk
+    }
+
+    /// <summary>
+    /// "Suaviza" um ponto adicionado. Nesses casos, esse ponto é o ultimo, assim ele não tem tangente esquerda nem direita.
+    /// Assim não fica parecendo que foram juntados dois sprite shape.
+    /// </summary>
+    private void SuavizarPrimeiroPontoAdicionado(SpriteShapeController ssc, int indice)
+    {
+        // TODO: No momento, estou fazendo um ponto médio entre esse ponto e o anterior, e adicionando como tangente. Tem algumas falhas, tem que ver pra ficar mais "SUAVE".;
+        var resLep = Vector2.Lerp(ssc.spline.GetPosition(indice), ssc.spline.GetPosition(indice - 1), 0.5f);
+        var diff = resLep - (Vector2)ssc.spline.GetPosition(indice);
+        ssc.spline.SetLeftTangent(ssc.spline.GetPointCount() - 1, diff);
+        ssc.spline.SetRightTangent(ssc.spline.GetPointCount() - 1, -diff);
     }
 }
