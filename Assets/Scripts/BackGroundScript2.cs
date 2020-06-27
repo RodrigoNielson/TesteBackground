@@ -23,11 +23,46 @@ public class BackGroundScript2 : MonoBehaviour
 
         var chaoPrefab = prefabsChao[0];
 
+        // TODO: isso aqui ajusta os pontos iniciais, vamos deixar aqui por enquanto, nao sei se vai precisar
+        //foreach (var chao in prefabsChao)
+        //{
+        //    var sscChao = chao.GetComponent<SpriteShapeController>();
+        //    var pInicial = sscChao.spline.GetPosition(0);
+
+        //    if (pInicial.x == 0)
+        //        continue;
+
+        //    if (pInicial.x < 0)
+        //    {
+        //        var ajuste = 0 - pInicial.x;
+
+        //        ssc.spline.SetPosition(0, pInicial + new Vector3(ajuste, 0));
+
+        //        for (int i = 1; i < sscChao.spline.GetPointCount(); i++)
+        //        {
+        //            var p = sscChao.spline.GetPosition(i);
+        //            ssc.spline.SetPosition(i, p + new Vector3(ajuste, 0));
+        //        }
+        //    }
+        //    else
+        //    {
+        //        var ajuste = pInicial.x - 0;
+
+        //        ssc.spline.SetPosition(0, pInicial - new Vector3(ajuste, 0));
+
+        //        for (int i = 1; i < sscChao.spline.GetPointCount(); i++)
+        //        {
+        //            var p = sscChao.spline.GetPosition(i);
+        //            ssc.spline.SetPosition(i, p - new Vector3(ajuste, 0));
+        //        }
+        //    }
+        //}
+
         var sscPrefab = chaoPrefab.GetComponent<SpriteShapeController>();
 
         var pontos = sscPrefab.spline.GetPointCount();
         string ret = "";
-        for (var i  = 0; i < pontos; i++)
+        for (var i = 0; i < pontos; i++)
         {
             ret += sscPrefab.spline.GetPosition(i).ToString();
             ret += sscPrefab.spline.GetLeftTangent(i).ToString();
@@ -39,18 +74,13 @@ public class BackGroundScript2 : MonoBehaviour
         var indice = ssc.spline.GetPointCount() - 1;
 
         var ultimaPosicaoSpline = ssc.spline.GetPosition(indice);
-        
+
         var posicao = sscPrefab.spline.GetPosition(0);
         ultimaPosicaoSpline = new Vector2(ultimaPosicaoSpline.x - posicao.x, -ultimaPosicaoSpline.y + posicao.y);
 
         ssc.spline.SetTangentMode(ssc.spline.GetPointCount() - 1, ShapeTangentMode.Continuous);
 
-        SuavizarPrimeiroPontoAdicionado(ssc, indice);
-        //var resLep = Vector2.Lerp(ssc.spline.GetPosition(indice), ssc.spline.GetPosition(indice-1), 0.5f);
-        //var diff = resLep - (Vector2)ssc.spline.GetPosition(indice);
-
-        //ssc.spline.SetLeftTangent(ssc.spline.GetPointCount() - 1, diff);
-        //ssc.spline.SetRightTangent(ssc.spline.GetPointCount() - 1, -diff);
+        SuavizarPrimeiroPontoAdicionado(ssc, indice, Vector2.zero);
 
         for (int i = 1; i < pontos; i++)
         {
@@ -135,9 +165,8 @@ public class BackGroundScript2 : MonoBehaviour
 
         var indiceTangenteInicial = ssc.spline.GetPointCount() - 1;
 
-
         ssc.spline.SetTangentMode(indiceTangenteInicial, ShapeTangentMode.Continuous);
-        SuavizarPrimeiroPontoAdicionado(ssc, indice);
+        SuavizarPrimeiroPontoAdicionado(ssc, indice, sscPrefab.spline.GetPosition(1));
 
         for (int i = 1; i < pontos; i++)
         {
@@ -160,22 +189,37 @@ public class BackGroundScript2 : MonoBehaviour
 
         var ultimoPontoA = (Vector2)ssc.spline.GetPosition(ssc.spline.GetPointCount() - 1);
         ssc.spline.InsertPointAt(ssc.spline.GetPointCount(), ultimoPontoA - new Vector2(0, 30));
-        //    ssc.BakeMesh();
+        ssc.BakeMesh().Complete();
         // INFO: então, colocando esse bakemesh, nao precisa ficar focado na camera, mas comeca a dar uns erros kKkk kKkk
-        // INFO: então, colocando esse bakemesh, nao precisa ficar focado na camera, mas comeca a dar uns erros kKkk kKkk
-        // INFO: então, colocando esse bakemesh, nao precisa ficar focado na camera, mas comeca a dar uns erros kKkk kKkk
+        // INFO: 27-06-2020 então, assim funciona com o .COmplete() HEHE
     }
 
     /// <summary>
     /// "Suaviza" um ponto adicionado. Nesses casos, esse ponto é o ultimo, assim ele não tem tangente esquerda nem direita.
     /// Assim não fica parecendo que foram juntados dois sprite shape.
     /// </summary>
-    private void SuavizarPrimeiroPontoAdicionado(SpriteShapeController ssc, int indice)
+    private void SuavizarPrimeiroPontoAdicionado(SpriteShapeController ssc, int indice, Vector2 prox)
     {
         // TODO: No momento, estou fazendo um ponto médio entre esse ponto e o anterior, e adicionando como tangente. Tem algumas falhas, tem que ver pra ficar mais "SUAVE".;
+        // TODO: 27-06-2020 o ideal é pegar a posicao real do que sera o proximo ponto e usar o Lerp em cima dele para definir a tangente da direita
         var resLep = Vector2.Lerp(ssc.spline.GetPosition(indice), ssc.spline.GetPosition(indice - 1), 0.5f);
         var diff = resLep - (Vector2)ssc.spline.GetPosition(indice);
         ssc.spline.SetLeftTangent(ssc.spline.GetPointCount() - 1, diff);
+
+        Debug.Log($"Diff {diff.x} prox {prox.x}");
+        if (prox != Vector2.zero && prox.x != 0 && Math.Abs(diff.x) > Math.Abs(prox.x))
+        {
+            if (diff.x < 0)
+            {
+                diff = new Vector2(-Math.Abs(prox.x) , diff.y);
+            }
+            else
+            {
+                diff = new Vector2(Math.Abs(prox.x) , diff.y);
+
+            }
+        }
+
         ssc.spline.SetRightTangent(ssc.spline.GetPointCount() - 1, -diff);
     }
 }

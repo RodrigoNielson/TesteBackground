@@ -140,6 +140,11 @@ PrefabInstance:
       propertyPath: m_LocalAABB.m_Extent.y
       value: 2.7500002
       objectReference: {fileID: 0}
+    - target: {fileID: 3663197953210606500, guid: 50f50075d26ea744bb2fd47cfd0dc3d8,
+        type: 3}
+      propertyPath: m_DynamicOccludee
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3663197953210606499, guid: 50f50075d26ea744bb2fd47cfd0dc3d8,
         type: 3}
       propertyPath: m_Spline.m_ControlPoints.Array.size
