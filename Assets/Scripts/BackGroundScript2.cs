@@ -23,53 +23,9 @@ public class BackGroundScript2 : MonoBehaviour
 
         var chaoPrefab = prefabsChao[0];
 
-        // TODO: isso aqui ajusta os pontos iniciais, vamos deixar aqui por enquanto, nao sei se vai precisar
-        //foreach (var chao in prefabsChao)
-        //{
-        //    var sscChao = chao.GetComponent<SpriteShapeController>();
-        //    var pInicial = sscChao.spline.GetPosition(0);
-
-        //    if (pInicial.x == 0)
-        //        continue;
-
-        //    if (pInicial.x < 0)
-        //    {
-        //        var ajuste = 0 - pInicial.x;
-
-        //        ssc.spline.SetPosition(0, pInicial + new Vector3(ajuste, 0));
-
-        //        for (int i = 1; i < sscChao.spline.GetPointCount(); i++)
-        //        {
-        //            var p = sscChao.spline.GetPosition(i);
-        //            ssc.spline.SetPosition(i, p + new Vector3(ajuste, 0));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        var ajuste = pInicial.x - 0;
-
-        //        ssc.spline.SetPosition(0, pInicial - new Vector3(ajuste, 0));
-
-        //        for (int i = 1; i < sscChao.spline.GetPointCount(); i++)
-        //        {
-        //            var p = sscChao.spline.GetPosition(i);
-        //            ssc.spline.SetPosition(i, p - new Vector3(ajuste, 0));
-        //        }
-        //    }
-        //}
-
         var sscPrefab = chaoPrefab.GetComponent<SpriteShapeController>();
 
         var pontos = sscPrefab.spline.GetPointCount();
-        string ret = "";
-        for (var i = 0; i < pontos; i++)
-        {
-            ret += sscPrefab.spline.GetPosition(i).ToString();
-            ret += sscPrefab.spline.GetLeftTangent(i).ToString();
-            ret += sscPrefab.spline.GetRightTangent(i).ToString();
-            ret += "\r\n";
-
-        }
 
         var indice = ssc.spline.GetPointCount() - 1;
 
@@ -126,15 +82,11 @@ public class BackGroundScript2 : MonoBehaviour
 
         for (int i = 1; i < ssc.spline.GetPointCount(); i++)
         {
-            if (ssc.spline.GetPosition(i).x < camerazx)
-            {
-                ssc.spline.RemovePointAt(i);
-                i--;
-            }
-            else
-            {
+            if (ssc.spline.GetPosition(i).x >= camerazx)
                 break;
-            }
+
+            ssc.spline.RemovePointAt(i);
+            i--;
         }
 
         var primeiroPonto = (Vector2)ssc.spline.GetPosition(1);
@@ -146,7 +98,7 @@ public class BackGroundScript2 : MonoBehaviour
     {
         var ssc = chao.GetComponent<SpriteShapeController>();
 
-        var indicePrefab = Random.Range(0, 4);
+        var indicePrefab = Random.Range(0, prefabsChao.Length);
         var chaoPrefab = prefabsChao[indicePrefab];
 
         var sscPrefab = chaoPrefab.GetComponent<SpriteShapeController>();
@@ -158,7 +110,6 @@ public class BackGroundScript2 : MonoBehaviour
         var indice = ssc.spline.GetPointCount() - 1;
 
         var ultimaPosicaoSpline = ssc.spline.GetPosition(indice);
-
 
         var posicao = sscPrefab.spline.GetPosition(0);
         ultimaPosicaoSpline = new Vector2(ultimaPosicaoSpline.x - posicao.x, -ultimaPosicaoSpline.y + posicao.y);
@@ -211,11 +162,11 @@ public class BackGroundScript2 : MonoBehaviour
         {
             if (diff.x < 0)
             {
-                diff = new Vector2(-Math.Abs(prox.x) , diff.y);
+                diff = new Vector2(-Math.Abs(prox.x), diff.y);
             }
             else
             {
-                diff = new Vector2(Math.Abs(prox.x) , diff.y);
+                diff = new Vector2(Math.Abs(prox.x), diff.y);
 
             }
         }
